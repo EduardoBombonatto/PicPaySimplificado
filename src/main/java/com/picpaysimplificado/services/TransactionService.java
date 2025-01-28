@@ -29,15 +29,15 @@ public class TransactionService {
 		User receiver = this.userService.findUserById(transaction.getReceiver().getId());
 
 		userService.validatedTransaction(sender, transaction.getAmount());
-		
+
 		boolean isAuthorized = this.authorizeTransaction();
-		if(!isAuthorized) {
+		if (!isAuthorized) {
 			throw new Exception("Transação não autorizada");
 		}
-		
+
 		sender.setBalance(sender.getBalance().subtract(transaction.getAmount()));
 		receiver.setBalance(receiver.getBalance().add(transaction.getAmount()));
-		
+
 		this.repository.save(transaction);
 		this.userService.saveUser(sender);
 		this.userService.saveUser(receiver);
