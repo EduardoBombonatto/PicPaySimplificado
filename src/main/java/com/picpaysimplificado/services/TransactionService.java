@@ -1,5 +1,7 @@
 package com.picpaysimplificado.services;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.picpaysimplificado.dtos.TransactionDTO;
 import com.picpaysimplificado.entities.Transaction;
 import com.picpaysimplificado.entities.User;
 import com.picpaysimplificado.repositories.TransactionRepository;
@@ -24,9 +27,12 @@ public class TransactionService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	public Transaction createTransaction(Transaction transaction) throws Exception {
-		User sender = this.userService.findUserById(transaction.getSender().getId());
-		User receiver = this.userService.findUserById(transaction.getReceiver().getId());
+	@Autowired
+	private NotificationService notificationService;
+
+	public Transaction createTransaction(TransactionDTO transaction) throws Exception {
+		User sender = this.userService.findUserById(transaction.getSenderId());
+		User receiver = this.userService.findUserById(transaction.getReceiverId());
 
 		userService.validatedTransaction(sender, transaction.getAmount());
 
@@ -35,12 +41,21 @@ public class TransactionService {
 			throw new Exception("Transação não autorizada");
 		}
 
-		sender.setBalance(sender.getBalance().subtract(transaction.getAmount()));
-		receiver.setBalance(receiver.getBalance().add(transaction.getAmount()));
+		Transaction newTransaction = new Transaction();
+		newTransaction.setAmount(transaction.getAmount());
+		newTransaction.setSender(sender);
+		newTransaction.setReceiver(receiver);
+		newTransaction.setTimestamp(LocalDateTime.now());
 
+		this.changeBalanceFromUsers(sender, receiver, transaction.getAmount());
+
+		this.repository.save(newTransaction);
 		this.userService.saveUser(receiver);
 		this.userService.saveUser(sender);
-		return this.repository.save(transaction);
+
+		//this.sendNotificationToUsers(sender, receiver); //notificação de serviço fora do ar, logo retirado
+
+		return newTransaction;
 	}
 
 	public boolean authorizeTransaction() {
@@ -55,4 +70,15 @@ public class TransactionService {
 			return false;
 		}
 	}
+
+	public void changeBalanceFromUsers(User sender, User receiver, BigDecimal value) {
+		sender.setBalance(sender.getBalance().subtract(value));
+		receiver.setBalance(receiver.getBalance().add(value));
+	}
+
+	public void sendNotificationToUsers(User sender, User receiver) throws Exception {
+		this.notificationService.sendNotification(sender, "Transação enviada com sucesso");
+		this.notificationService.sendNotification(receiver, "Transação recebida com sucesso");
+	}
+
 }
