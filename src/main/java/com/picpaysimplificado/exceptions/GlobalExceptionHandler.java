@@ -30,6 +30,28 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
 	}
 
+	@ExceptionHandler(UserTypeNotAuthorizeSenderException.class)
+	public ResponseEntity<ApiResponse<Object>> threatUserTypeNotAuthorizeSender(
+			UserTypeNotAuthorizeSenderException exception) {
+		ApiResponse<Object> errorResponse = ResponseUtil.error(Arrays.asList(exception.getMessage()),
+				"Lojistas não estão autorizados a realizar transações.", 401, null);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+	}
+
+	@ExceptionHandler(InsuficientAmountException.class)
+	public ResponseEntity<ApiResponse<Object>> threatInsuficientAmount(InsuficientAmountException exception) {
+		ApiResponse<Object> errorResponse = ResponseUtil.error(Arrays.asList(exception.getMessage()),
+				"Saldo insuficiente.", 401, null);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+	}
+
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity<ApiResponse<Object>> threatUserNotFound(UserNotFoundException exception) {
+		ApiResponse<Object> errorResponse = ResponseUtil.error(Arrays.asList(exception.getMessage()),
+				"Usuário não encontrado", 404, null);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> threatInternalServerError(EntityNotFoundException exception) {
 		ApiResponse<Object> errorResponse = ResponseUtil.error(Arrays.asList(exception.getMessage()), "", 500, null);

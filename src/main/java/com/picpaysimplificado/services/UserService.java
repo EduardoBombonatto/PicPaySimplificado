@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import com.picpaysimplificado.dtos.UserRequestDTO;
 import com.picpaysimplificado.entities.User;
 import com.picpaysimplificado.entities.UserType;
+import com.picpaysimplificado.exceptions.InsuficientAmountException;
+import com.picpaysimplificado.exceptions.UserNotFoundException;
+import com.picpaysimplificado.exceptions.UserTypeNotAuthorizeSenderException;
 import com.picpaysimplificado.repositories.UserRepository;
 
 @Service
@@ -17,31 +20,31 @@ public class UserService {
 	@Autowired
 	private UserRepository repository;
 
-	public User findUserById(Long id) throws Exception {
-		return this.repository.findUserById(id).orElseThrow(() -> new Exception("Usuário não encontrado"));
+	public User findUserById(Long id) {
+		return this.repository.findUserById(id).orElseThrow(() -> new UserNotFoundException(id));
 	}
-	
-	public List<User> getAllUsers(){
+
+	public List<User> getAllUsers() {
 		return this.repository.findAll();
 	}
-	
+
 	public User createUser(UserRequestDTO data) {
 		User newUser = new User(data);
 		this.saveUser(newUser);
 		return newUser;
 	}
-	
+
 	public void saveUser(User user) {
 		this.repository.save(user);
 	}
-	
-	public void validatedTransaction(User sender, BigDecimal amount) throws Exception {
+
+	public void validatedTransaction(User sender, BigDecimal amount) {
 		if (sender.getUserType() == UserType.MERCHANT) {
-			throw new Exception("Lojistas não estão autorizados a realizar transações.");
+			throw new UserTypeNotAuthorizeSenderException();
 		}
 
 		if (sender.getBalance().compareTo(amount) < 0) {
-			throw new Exception("Saldo insuficiente.");
+			throw new InsuficientAmountException();
 		}
 	}
 }
