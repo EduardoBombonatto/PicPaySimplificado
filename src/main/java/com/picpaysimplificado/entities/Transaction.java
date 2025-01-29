@@ -21,7 +21,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-@SuppressWarnings("unused")
 public class Transaction {
 	
 	@Id

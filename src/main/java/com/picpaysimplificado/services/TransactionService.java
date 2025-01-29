@@ -24,7 +24,7 @@ public class TransactionService {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	void createTransaction(Transaction transaction) throws Exception {
+	public Transaction createTransaction(Transaction transaction) throws Exception {
 		User sender = this.userService.findUserById(transaction.getSender().getId());
 		User receiver = this.userService.findUserById(transaction.getReceiver().getId());
 
@@ -38,9 +38,9 @@ public class TransactionService {
 		sender.setBalance(sender.getBalance().subtract(transaction.getAmount()));
 		receiver.setBalance(receiver.getBalance().add(transaction.getAmount()));
 
-		this.repository.save(transaction);
-		this.userService.saveUser(sender);
 		this.userService.saveUser(receiver);
+		this.userService.saveUser(sender);
+		return this.repository.save(transaction);
 	}
 
 	public boolean authorizeTransaction() {
