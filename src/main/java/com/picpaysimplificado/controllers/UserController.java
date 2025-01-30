@@ -25,18 +25,23 @@ public class UserController {
 	private UserService userService;
 
 	@GetMapping
-	public List<UserResponseDTO> getAllUsers() {
+	public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
 		List<User> allUsers = this.userService.getAllUsers();
-		return allUsers.stream().map(user -> new UserResponseDTO(user.getFirstName(), user.getLastName(),
-				user.getEmail(), user.getBalance(), user.getUserType())).toList();
+		List<UserResponseDTO> returnedUsers = allUsers.stream().map(user -> new UserResponseDTO(user.getFirstName(),
+				user.getLastName(), user.getEmail(), user.getBalance(), user.getUserType())).toList();
+		ApiResponse<List<UserResponseDTO>> successResponse = ResponseUtil.success(returnedUsers,
+				"Usuarios retornados com sucesso!", null);
+		return ResponseEntity.ok().body(successResponse);
+
 	}
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<UserResponseDTO>> createUser(@RequestBody UserRequestDTO userDto) {
 		User user = userService.createUser(userDto);
-		UserResponseDTO returnedUser =  new UserResponseDTO(user.getFirstName(), user.getLastName(), user.getEmail(), user.getBalance(),
-				user.getUserType());
-		ApiResponse<UserResponseDTO> successResponse = ResponseUtil.success(returnedUser, "Usuario criado com sucesso!", null);
+		UserResponseDTO returnedUser = new UserResponseDTO(user.getFirstName(), user.getLastName(), user.getEmail(),
+				user.getBalance(), user.getUserType());
+		ApiResponse<UserResponseDTO> successResponse = ResponseUtil.success(returnedUser, "Usuario criado com sucesso!",
+				null);
 		return ResponseEntity.ok().body(successResponse);
 	}
 
